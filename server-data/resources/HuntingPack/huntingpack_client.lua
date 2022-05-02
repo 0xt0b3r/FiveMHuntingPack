@@ -57,10 +57,17 @@ Citizen.CreateThread(function()
 
         if ourTeamType == 'driver' then
             SetEntityInvincible(ourDriverVehicle, true)
-            if GetPlayerWantedLevel(PlayerId()) ~= math.floor(totalLife/50) then
-                SetPlayerWantedLevel(PlayerId(), math.floor(totalLife/50), false)
+            total_players = count_array(GetPlayers())
+            if total_players <= 3 then
+                if GetPlayerWantedLevel(PlayerId()) ~= 5 then
+                    SetPlayerWantedLevel(PlayerId(),5, false)
+                    SetPlayerWantedLevelNow(PlayerId(), false)
+                end
+            elseif GetPlayerWantedLevel(PlayerId()) ~= math.floor(totalLife/40) then
+                SetPlayerWantedLevel(PlayerId(), math.floor(totalLife/40), false)
                 SetPlayerWantedLevelNow(PlayerId(), false)
             end
+            SetPoliceRadarBlips(false)
         else
             if GetPlayerWantedLevel(PlayerId()) ~= 0 then
                 SetPlayerWantedLevel(PlayerId(), 0, false)
@@ -78,6 +85,8 @@ Citizen.CreateThread(function()
                 SetVehicleCheatPowerIncrease(ourDriverVehicle, 0.7)
             elseif lastVehicle == 'Flatbed' then
                 SetVehicleCheatPowerIncrease(ourDriverVehicle, 0.9)
+            elseif lastVehicle == 'Stretch' then
+                SetVehicleCheatPowerIncrease(ourDriverVehicle, 1.2)
             else
                 SetVehicleCheatPowerIncrease(ourDriverVehicle, 1.0)
             end 
@@ -240,7 +249,7 @@ AddEventHandler('onClientGameTypeStart', function()
             x = spawnPos.x,
             y = spawnPos.y,
             z = spawnPos.z,
-            model = 's_m_m_ciasec_01'
+            model = 's_m_y_cop_01'
         }, function()
             TriggerEvent('chat:addMessage', {
                 args = { '^5MOTD: ^12 Players minimum ^5required to start the game. ^2If you are blown up/disabled then you can use /respawn.' }
@@ -332,7 +341,7 @@ AddEventHandler('onHuntingPackStart', function(teamtype, spawnPos, spawnRot, dri
         selectedRandomCar = math.random(1, #possibleDriverVehicles)
         vehicleName = possibleDriverVehicles[selectedRandomCar]
     else
-        GiveWeaponToPed(GetPlayerPed(-1), 1198879012, 2, false, true)
+        GiveWeaponToPed(GetPlayerPed(-1), 453432689, 9999, false, true)
         vehicleName = possibleAttackerVehicles[selectedRandomCar]
     end
 
@@ -364,6 +373,46 @@ AddEventHandler('onHuntingPackStart', function(teamtype, spawnPos, spawnRot, dri
     local vehicle = CreateVehicle(vehicleName, pos.x, pos.y, pos.z, spawnRot, true, false)
     ourDriverVehicle = vehicle
     SetPedIntoVehicle(playerPed, vehicle, -1)
+    if ourTeamType ~= 'driver' then
+        RequestModel('s_m_y_cop_01')
+
+        -- load the model for this spawn
+        while not HasModelLoaded('s_m_y_cop_01') do
+            RequestModel('s_m_y_cop_01')
+
+            Wait(0)
+            -- release the player model
+            SetModelAsNoLongerNeeded('s_m_y_cop_01')
+        end
+        passengerPed = CreatePed(6, 's_m_y_cop_01', pos.x, pos.y, pos.z, 0, true, true)
+        GiveWeaponToPed(passengerPed, 453432689, 9999, false, true)
+        SetPedIntoVehicle(passengerPed, vehicle, 0)
+        SetPedCombatAttributes(passengerPed, 2, true)
+        SetPedCombatAttributes(passengerPed, 3, false)
+
+        if vehicleName == 'FBI2' then
+            RequestModel('s_m_y_swat_01')
+
+        -- load the model for this spawn
+        while not HasModelLoaded('s_m_y_swat_01') do
+            RequestModel('s_m_y_swat_01')
+
+            Wait(0)
+            -- release the player model
+            SetModelAsNoLongerNeeded('s_m_y_swat_01')
+        end
+        passengerPed = CreatePed(6, 's_m_y_swat_01', pos.x, pos.y, pos.z, 0, true, true)
+        GiveWeaponToPed(passengerPed, 453432689, 9999, false, true)
+        SetPedIntoVehicle(passengerPed, vehicle, 3)
+        SetPedCombatAttributes(passengerPed, 2, true)
+        SetPedCombatAttributes(passengerPed, 3, false)
+        passengerPed = CreatePed(6, 's_m_y_swat_01', pos.x, pos.y, pos.z, 0, true, true)
+        GiveWeaponToPed(passengerPed, 453432689, 9999, false, true)
+        SetPedIntoVehicle(passengerPed, vehicle, 4)
+        SetPedCombatAttributes(passengerPed, 2, true)
+        SetPedCombatAttributes(passengerPed, 3, false)
+        end
+      end
     SetVehicleDoorsLocked(vehicle, 4)
     -- give the vehicle back to the game (this'll make the game decide when to despawn the vehicle)
     SetEntityAsNoLongerNeeded(vehicle)
@@ -375,7 +424,10 @@ AddEventHandler('onHuntingPackStart', function(teamtype, spawnPos, spawnRot, dri
   
     -- release the model
     SetModelAsNoLongerNeeded(vehicleName)
+
   end)
+
+  
 
   function GetPlayers()
 	local players = {}
@@ -396,6 +448,7 @@ Citizen.CreateThread(function()
 	while true do
 		Wait(100)
 
+       
 		local players = GetPlayers()
 
 		for player = 0, 64 do
@@ -404,32 +457,40 @@ Citizen.CreateThread(function()
 				local playerName = GetPlayerName(player)
 
 				RemoveBlip(blips[player])
+                gamerTag = Citizen.InvokeNative(0xBFEFE3321A3F5015, playerPed, playerName, false, false, '', false)
+                if ourTeamType ~= 'driver' then
+                    local new_blip = AddBlipForEntity(playerPed)
 
-				local new_blip = AddBlipForEntity(playerPed)
+                    -- Add player name to blip
+                    SetBlipNameToPlayerName(new_blip, player)
 
-				-- Add player name to blip
-				SetBlipNameToPlayerName(new_blip, player)
+                    -- Make blip white
+                    if playerName == driverName or driverName == GetPlayerName(PlayerId()) then
+                        SetBlipColour(new_blip, 1)
+                        SetBlipCategory(new_blip, 380)
+                    else 
+                        SetBlipColour(new_blip, 2)
+                        SetBlipCategory(new_blip, 56)
+                    end
 
-				-- Make blip white
-                if playerName == driverName or driverName == GetPlayerName(PlayerId()) then
-                    SetBlipColour(new_blip, 1)
-                    SetBlipCategory(new_blip, 380)
-                else 
-                    SetBlipColour(new_blip, 2)
-                    SetBlipCategory(new_blip, 56)
+                    -- Set the blip to shrink when not on the minimap
+                    -- Citizen.InvokeNative(0x2B6D467DAB714E8D, new_blip, true)
+
+                    -- Shrink player blips slightly
+                    SetBlipScale(new_blip, 0.9)
+
+                    -- Record blip so we don't keep recreating it
+                    blips[player] = new_blip
+
+                    -- Add nametags above head
+                    SetMpGamerTagVisibility(gamerTag, 0, true)
+                else
+                    SetMpGamerTagVisibility(gamerTag, 0, false)
                 end
+                 
 
-				-- Set the blip to shrink when not on the minimap
-				-- Citizen.InvokeNative(0x2B6D467DAB714E8D, new_blip, true)
 
-				-- Shrink player blips slightly
-				SetBlipScale(new_blip, 0.9)
 
-				-- Add nametags above head
-				Citizen.InvokeNative(0xBFEFE3321A3F5015, playerPed, playerName, false, false, '', false)
-
-				-- Record blip so we don't keep recreating it
-				blips[player] = new_blip
 			end
 		end
 	end
@@ -444,13 +505,10 @@ end)
 
 
 RegisterCommand('respawn', function(source, args)
-    if totalLife > 30 and ourTeamType ~= 'driver'then
+    if totalLife > 0 and ourTeamType ~= 'driver'then
         print('Requesting Start for '.. GetPlayerName(PlayerId()) .. ' in progress')
         TriggerServerEvent('OnRequestJoinInProgress', GetPlayerServerId(PlayerId()))
     end
-    TriggerEvent('chat:addMessage', {
-        args = { '^530 seconds survived must have passed before respawning is possible!' }
-    })
 end, false)
 
 ranks = {
