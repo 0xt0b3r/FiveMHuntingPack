@@ -54,11 +54,11 @@ Citizen.CreateThread(function()
 		--SetGarbageTrucks(0)
 		--SetRandomBoats(0)
         SetEntityInvincible(GetPlayerPed(-1), true)
-
+        SetEntityInvincible(ourDriverVehicle, true)
         if ourTeamType == 'driver' then
-            SetEntityInvincible(ourDriverVehicle, true)
+           
             total_players = count_array(GetPlayers())
-            if total_players <= 3 then
+            if total_players <= 6 then
                 if GetPlayerWantedLevel(PlayerId()) ~= 5 then
                     SetPlayerWantedLevel(PlayerId(),5, false)
                     SetPlayerWantedLevelNow(PlayerId(), false)
@@ -325,7 +325,7 @@ AddEventHandler('onHuntingPackStart', function(teamtype, spawnPos, spawnRot, dri
     print(teamtype)
     startTime = GetGameTimer()
     possibleDriverVehicles = {'Firetruk', 'Bus'}
-    possibleAttackerVehicles = {'FBI', 'FBI2', 'Police3', 'Sheriff2', 'Police2', 'Police', 'Police4', 'Pranger' }
+    possibleAttackerVehicles = {'FBI', 'FBI2', 'Police3', 'Sheriff2', 'Police2', 'Police', 'Police4', 'Pranger', 'Sheriff' }
 
     RemoveAllPedWeapons(GetPlayerPed(-1), true)
     total_players = count_array(GetPlayers())
@@ -373,6 +373,7 @@ AddEventHandler('onHuntingPackStart', function(teamtype, spawnPos, spawnRot, dri
     local vehicle = CreateVehicle(vehicleName, pos.x, pos.y, pos.z, spawnRot, true, false)
     ourDriverVehicle = vehicle
     SetPedIntoVehicle(playerPed, vehicle, -1)
+     --[[ 
     if ourTeamType ~= 'driver' then
         RequestModel('s_m_y_cop_01')
 
@@ -384,13 +385,13 @@ AddEventHandler('onHuntingPackStart', function(teamtype, spawnPos, spawnRot, dri
             -- release the player model
             SetModelAsNoLongerNeeded('s_m_y_cop_01')
         end
-        passengerPed = CreatePed(6, 's_m_y_cop_01', pos.x, pos.y, pos.z, 0, true, true)
+        passengerPed = CreatePed(6, 's_m_y_cop_01', pos.x, pos.y, pos.z, 0, true, false)
         GiveWeaponToPed(passengerPed, 453432689, 9999, false, true)
         SetPedIntoVehicle(passengerPed, vehicle, 0)
         SetPedCombatAttributes(passengerPed, 2, true)
         SetPedCombatAttributes(passengerPed, 3, false)
 
-        if vehicleName == 'FBI2' then
+        if vehicleName == 'FBI2' or vehicleName == 'Sheriff2' or vehicleName == 'Pranger' then
             RequestModel('s_m_y_swat_01')
 
         -- load the model for this spawn
@@ -401,18 +402,19 @@ AddEventHandler('onHuntingPackStart', function(teamtype, spawnPos, spawnRot, dri
             -- release the player model
             SetModelAsNoLongerNeeded('s_m_y_swat_01')
         end
-        passengerPed = CreatePed(6, 's_m_y_swat_01', pos.x, pos.y, pos.z, 0, true, true)
+        passengerPed = CreatePed(6, 's_m_y_swat_01', pos.x, pos.y, pos.z, 0, true, false)
         GiveWeaponToPed(passengerPed, 453432689, 9999, false, true)
         SetPedIntoVehicle(passengerPed, vehicle, 3)
         SetPedCombatAttributes(passengerPed, 2, true)
         SetPedCombatAttributes(passengerPed, 3, false)
-        passengerPed = CreatePed(6, 's_m_y_swat_01', pos.x, pos.y, pos.z, 0, true, true)
+        passengerPed = CreatePed(6, 's_m_y_swat_01', pos.x, pos.y, pos.z, 0, true, false)
         GiveWeaponToPed(passengerPed, 453432689, 9999, false, true)
         SetPedIntoVehicle(passengerPed, vehicle, 4)
         SetPedCombatAttributes(passengerPed, 2, true)
         SetPedCombatAttributes(passengerPed, 3, false)
         end
-      end
+    end
+    --]]
     SetVehicleDoorsLocked(vehicle, 4)
     -- give the vehicle back to the game (this'll make the game decide when to despawn the vehicle)
     SetEntityAsNoLongerNeeded(vehicle)
