@@ -187,13 +187,28 @@ function RandomWeather()
     TriggerEvent('vSync:requestSync')
 end
 
+function ClearWeather()
+    possibleWeather = {'clear'}
+    selectedRandomWeather = possibleWeather[math.random(1, #possibleWeather)]
+    print('Selected Weather: ' .. selectedRandomWeather)
+    CurrentWeather = selectedRandomWeather
+    newWeatherTimer = 1
+    TriggerClientEvent('vSync:notify', -1, 'Random Weather: ' .. selectedRandomWeather)
+    TriggerEvent('vSync:requestSync')
+end
+
 exports('RT', function()
     RandomTime()
   end) 
 
-  exports('RW', function()
+exports('RW', function()
     RandomWeather()
   end) 
+
+  exports('CL', function()
+    ClearWeather()
+  end) 
+
 
 RegisterCommand('morning', function(source)
     if source == 0 then
